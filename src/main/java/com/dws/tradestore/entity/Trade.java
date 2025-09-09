@@ -3,7 +3,12 @@ package com.dws.tradestore.entity;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
+@Entity (name = "Trade")
 public class Trade {
+    @Id
     private String tradeId;
     private int version;
     private String counterPartyId;
