@@ -1,0 +1,56 @@
+default:
+image: maven:3.9.6-eclipse-temurin-17
+
+stages:
+  - build
+  - test
+  - sonar
+  - fortify
+
+variables:
+  MAVEN_CLI_OPTS: "-B -DskipTests=false"
+  SONAR_SCANNER_OPTS: "-Dsonar.projectKey=trade-store -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN"
+  # Default GitLab Container Registry
+  CONTAINER_IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+
+cache:
+  paths:
+    - .m2/repository
+
+before_script:
+  - export MAVEN_OPTS="-Dmaven.repo.local=.m2/repository"
+
+build:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS clean compile
+
+test:
+  stage: test
+  script:
+    - mvn $MAVEN_CLI_OPTS test
+
+sonar:
+  stage: sonar
+  image: sonarsource/sonar-scanner-cli:latest
+  script:
+    - sonar-scanner $SONAR_SCANNER_OPTS
+  only:
+    - merge_requests
+    - master
+    - main
+
+fortify-scan:
+  stage: fortify
+  image: fortifydocker/fortify-ci-tools:latest
+  script:
+    - sourceanalyzer -b tradestore -clean
+    - mvn $MAVEN_CLI_OPTS compile
+    - sourceanalyzer -b tradestore -scan -f tradestore.fpr
+  artifacts:
+    paths:
+      - tradestore.fpr
+  only:
+    - merge_requests
+    - master
+    - main
