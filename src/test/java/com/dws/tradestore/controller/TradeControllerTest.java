@@ -72,7 +72,7 @@ class TradeControllerTest {
         mockMvc.perform(post("/trades")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(tradeJson))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(content().string("Invalid trade"));
     }
 
